@@ -1,0 +1,49 @@
+<%- model_class = @todo.class -%>
+<h1><%=t '.title', :default => model_class.model_name.human %></h1>
+
+<p>
+  <strong><%= model_class.human_attribute_name(:title) %>:</strong><br>
+  <%= @todo.title %>
+</p>
+<p>
+  <strong><%= model_class.human_attribute_name(:status) %>:</strong><br>
+  <% if @todo.status == true %>
+    Open
+  <% else %>
+    Completed
+  <% end %>
+</p>
+
+<p>
+  <strong><%= model_class.human_attribute_name(:description) %>:</strong><br>
+  <%= @todo.description %>
+</p>
+<p>
+  <strong><%= model_class.human_attribute_name(:priority) %>:</strong>
+  <%= @todo.priority %>
+</p>
+
+<h3>Notes</h3>
+<ul>
+  <% @notes.each do |note| %>
+    <li><%= note.note %> <em><%= note.created_at.stamp("July 4, 1776") %><em></li>
+  <% end %>
+</ul>
+
+<%= form_for([@todo, @todo.notes.build]) do |f| %>
+  <%= f.label :note %>
+  <%= f.text_field :note %>
+  
+  <%= f.submit %>
+<% end %>
+<div class="form-actions">
+  <%= link_to t('.back', :default => t("helpers.links.back")),
+              todos_path, :class => 'btn'  %>
+  <%= link_to t('.edit', :default => t("helpers.links.edit")),
+              edit_todo_path(@todo), :class => 'btn' %>
+  <%= link_to t('.destroy', :default => t("helpers.links.destroy")),
+              todo_path(@todo),
+              :method => 'delete',
+              :confirm => t('.confirm', :default => t("helpers.links.confirm", :default => 'Are you sure?')),
+              :class => 'btn btn-danger' %>
+</div>

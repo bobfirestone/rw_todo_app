@@ -1,0 +1,228 @@
+CREATE A NEW RAILS APP
+$ rails new todo_app
+
+$ cd todo_app
+
+
+START THE SERVER
+$ rails server
+
+You should see the "Rails Start Page"
+
+stop the server "ctrl-c"
+
+
+CREATE A HOMEPAGE & GET RID OF RAILS START PAGE
+$ rails g contorller welcome index
+
+$ rm public/index.html
+
+$ rails s
+
+
+CREATE SOME TODO'S
+$ rails g scaffold todo title:string description:text
+$ bundle exec rake db:migrate
+
+$ rails s
+
+http://localhost:3000/todos/
+
+
+VALIDATION
+
+app/models/todo.rb
+
+  attr_accessible :title, :description
+
+  validates_presence_of :title
+
+
+PRETTY TODO's USING TWITTER BOOTSTRAP
+
+Gemfile
+  gem 'twitter-bootstrap-rails'
+
+$ bundle install
+$ rails g bootstrap:install
+$ rails g bootstrap:layout application fixed
+$ rails g bootstrap:themed todos
+
+CHANGE "LINK 1" TO OPEN
+app/layouts/application.html.erb
+  <li><%= link_to "Open", todos_path  %></li>
+
+  Change
+  <a class="brand" href="#">TodoApp</a>
+  to
+  <a class="brand" href=<%= root_path %>>RwTodoApp</a>
+
+Remove Scaffod Stylesheet
+$ rm app/assets/stylesheets/scaffolds.css.scss
+
+ADDING PRIORITY TO TODOS
+$ rails g migration add_priority_to_todos priority:integer
+$ bundle exec rake db:migrate
+
+Add priority to form
+views/todos/_form.html.erb
+    <div class="control-group">
+    <%= f.label :priority, :class => 'control-label' %>
+    <div class="controls">
+      <%= f.text_field :priority, :class => 'text_field' %>
+    </div>
+  </div>
+
+views/todos/index.html.erb
+  remove from <th> id, created_at
+  change one th & td to priority
+
+views/todos/show.html.erb
+  <p>
+    <strong><%= model_class.human_attribute_name(:priority) %>:</strong><%= @todo.priority %>
+  </p>
+
+model/todo.rb
+  default_scope order("priority DESC")
+
+
+ADDING NOTES TO TODO'S
+$ rails g model note note:text todo_id:integer
+
+ACTIVE RECORD ASSOCIATIONS
+model/todo.rb
+  has_many :notes
+
+model/note.rb
+  belongs_to :todo
+
+SHOW TODO NOTES ON TODO PAGE
+  controllers/todos_controller
+    show
+      @notes = @todo.notes.all
+
+views/todos/show.html.erb
+  <h3>Notes</h3>
+  <ul>
+    <% @notes.each do |note| %>
+      <li><%= note.note %> <em><%= note.created_at %><em></li>
+    <% end %>
+  </ul>
+
+ADD SOME NOTES IN THE CONSOLE
+$ rails console
+
+> n = Note.create(note: "It's a note", todo_id: 1)
+
+View the page and the note should be there
+
+> t = Todo.find(1)
+> x = t.notes.build(note: "note made by build")
+> x.save
+
+View the page again and the second note will be there
+
+CREATE NOTE FROM TODO SHOW PAGE
+1. Create a notes_controller
+2. add routing for the controller
+3. add a noes form on the show page
+
+NOTES CONTROLLER
+$ rails g controller notes create
+
+controllers/notes_controller
+  def create
+    @todo = Todo.find(params[:todo_id])
+    @note = @todo.notes.build(params[:note])
+
+    if @note.save
+      redirect_to todo_path(@todo)
+    else
+      redirect_to todo_path(@todo)
+    end
+  end
+
+ROUTING TO THE CONTROLLER
+config/routes.rb
+  resources :todos do
+    resources :notes
+  end
+
+FORM ON TODO SHOW PAGE
+views/todos/show.html.erb
+  <%= form_for([@todo, @todo.notes.build]) do |f| %>
+    <%= f.label :note %>
+    <%= f.text_field :note %>
+    
+    <%= f.submit %>
+  <% end %>
+
+reload the page & the form should be there
+
+VALIDATE PRESENCE OF NOTE
+  attr_accessible :note
+  validates_presence_of :note
+
+STAMP FOR SHOWING DATES
+Gemfile
+  gem 'stamp'
+
+$ bundle
+
+views/todos/show.html.erb
+  <em><%= note.created_at.stamp("July 4, 1776") %><em>
+
+STATUS
+$ rails g migration add_status_to_todos status:boolean
+
+db/migrate/#####_add_status_to_todos
+  add_column :todos, :status, :boolean, :default => true
+
+$ bundle exec rake db:migrate
+
+views/todos/_form.html.erb
+    <div class="control-group">
+      <%= f.label :status, :class => 'control-label' %>
+      <div class="controls">
+        <%= radio_button("todo", "status", "true") %> Open<br>
+        <%= radio_button("todo", "status", "false") %> Closed
+      </div>
+    </div>
+
+models/todo.rb
+  attr_accessible :status
+
+views/todos/show.html.erb
+  <p>
+    <strong><%= model_class.human_attribute_name(:status) %>:</strong><br>
+    <% if @todo.status == true %>
+      Open
+    <% else %>
+      Completed
+    <% end %>
+  </p>
+
+controllers/todos_controller.rb
+  def completed
+    @todos = Todo.find_all_by_status(false)
+    render 'index'
+  end  
+
+config/routes.rb
+  match '/completed' => 'todos#completed', :as => 'completed'
+
+views/todos/index.html.erb
+  <th><%= model_class.human_attribute_name(:status) %></th>
+
+  <td>
+    <% if todo.status == true %>
+      Open
+    <% else %>
+      Completed
+    <% end %>
+  </td>
+
+CHANGE "LINK 2 TO COMPLETE
+  app/layouts/application.html.erb
+    <li><%= link_to "Complete", completed_path  %></li>
+
