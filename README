@@ -1,10 +1,15 @@
-CREATE A NEW RAILS APP
+RubyWeekend Application Tutorial:
+  Lines beginning with a $ are commands to be run from the command line
+  indented text indicates text to be inserted into some file.
+
+
+********CREATE A NEW RAILS APP*********
 $ rails new todo_app
 
 $ cd todo_app
 
 
-START THE SERVER
+********START THE SERVER********
 $ rails server
 
 You should see the "Rails Start Page"
@@ -12,15 +17,22 @@ You should see the "Rails Start Page"
 stop the server "ctrl-c"
 
 
-CREATE A HOMEPAGE & GET RID OF RAILS START PAGE
-$ rails g contorller welcome index
+********CREATE A HOMEPAGE & GET RID OF RAILS START PAGE********
+$ rails g controller welcome index
 
 $ rm public/index.html
 
+config/routes.rb
+
+  uncomment line #53 "root :to => 'welcome#index'"
+
 $ rails s
 
+http://localhost:3000
+stop the server "ctrl-c"
 
-CREATE SOME TODO'S
+
+********CREATE SOME TODO'S********
 $ rails g scaffold todo title:string description:text
 $ bundle exec rake db:migrate
 
@@ -29,7 +41,7 @@ $ rails s
 http://localhost:3000/todos/
 
 
-VALIDATION
+********VALIDATION********
 
 app/models/todo.rb
 
@@ -38,7 +50,10 @@ app/models/todo.rb
   validates_presence_of :title
 
 
-PRETTY TODO's USING TWITTER BOOTSTRAP
+stop the server "ctrl-c"
+
+
+********PRETTY TODO's USING TWITTER BOOTSTRAP********
 
 Gemfile
   gem 'twitter-bootstrap-rails'
@@ -46,7 +61,14 @@ Gemfile
 $ bundle install
 $ rails g bootstrap:install
 $ rails g bootstrap:layout application fixed
+
+Overwrite ?
+  Y
+
 $ rails g bootstrap:themed todos
+
+Overwrite ?
+  Y to all
 
 CHANGE "LINK 1" TO OPEN
 app/layouts/application.html.erb
@@ -60,13 +82,20 @@ app/layouts/application.html.erb
 Remove Scaffod Stylesheet
 $ rm app/assets/stylesheets/scaffolds.css.scss
 
-ADDING PRIORITY TO TODOS
+$ rails s
+
+http://localhost:3000
+
+stop the server "ctrl-c"
+
+
+********ADDING PRIORITY TO TODOS********
 $ rails g migration add_priority_to_todos priority:integer
 $ bundle exec rake db:migrate
 
 Add priority to form
 views/todos/_form.html.erb
-    <div class="control-group">
+  <div class="control-group">
     <%= f.label :priority, :class => 'control-label' %>
     <div class="controls">
       <%= f.text_field :priority, :class => 'text_field' %>
@@ -76,6 +105,7 @@ views/todos/_form.html.erb
 views/todos/index.html.erb
   remove from <th> id, created_at
   change one th & td to priority
+  make title link_to show action
 
 views/todos/show.html.erb
   <p>
@@ -84,22 +114,38 @@ views/todos/show.html.erb
 
 model/todo.rb
   default_scope order("priority DESC")
+  attr_accessible :title, :description, :priority
+
+$ rails s
+
+http://localhost:3000/todos
 
 
-ADDING NOTES TO TODO'S
+********ADD A TODO********
+
+stop the server "ctrl-c"
+
+
+********ADDING NOTES TO TODO'S********
 $ rails g model note note:text todo_id:integer
+$ bundle exec rake db:migrate
 
-ACTIVE RECORD ASSOCIATIONS
+$ rails s
+http://localhost:3000/todos
+
+
+********ACTIVE RECORD ASSOCIATIONS********
 model/todo.rb
   has_many :notes
 
 model/note.rb
   belongs_to :todo
 
-SHOW TODO NOTES ON TODO PAGE
+
+********SHOW TODO NOTES ON TODO PAGE********
   controllers/todos_controller
     show
-      @notes = @todo.notes.all
+      @notes = @todo.notes.all # on line 17
 
 views/todos/show.html.erb
   <h3>Notes</h3>
@@ -109,25 +155,38 @@ views/todos/show.html.erb
     <% end %>
   </ul>
 
-ADD SOME NOTES IN THE CONSOLE
+stop the server "ctrl-c"
+
+
+********ADD SOME NOTES IN THE CONSOLE********
 $ rails console
 
 > n = Note.create(note: "It's a note", todo_id: 1)
 
 View the page and the note should be there
+> exit
+$ rails s
+http://localhost:3000/todos
 
+stop the server "ctrl-c"
+$ rails console
 > t = Todo.find(1)
 > x = t.notes.build(note: "note made by build")
 > x.save
 
 View the page again and the second note will be there
+> exit
+$ rails s
+http://localhost:3000/todos
+
 
 CREATE NOTE FROM TODO SHOW PAGE
 1. Create a notes_controller
 2. add routing for the controller
-3. add a noes form on the show page
+3. add a notes form on the show page
 
-NOTES CONTROLLER
+
+********NOTES CONTROLLER********
 $ rails g controller notes create
 
 controllers/notes_controller
@@ -142,13 +201,15 @@ controllers/notes_controller
     end
   end
 
-ROUTING TO THE CONTROLLER
+
+********ROUTING TO THE CONTROLLER********
 config/routes.rb
   resources :todos do
     resources :notes
   end
 
-FORM ON TODO SHOW PAGE
+
+********FORM ON TODO SHOW PAGE********
 views/todos/show.html.erb
   <%= form_for([@todo, @todo.notes.build]) do |f| %>
     <%= f.label :note %>
@@ -157,13 +218,19 @@ views/todos/show.html.erb
     <%= f.submit %>
   <% end %>
 
+$ rails s
+http://localhost:3000/todos/1
+
 reload the page & the form should be there
 
-VALIDATE PRESENCE OF NOTE
+
+********VALIDATE PRESENCE OF NOTE********
   attr_accessible :note
   validates_presence_of :note
 
-STAMP FOR SHOWING DATES
+
+********STAMP FOR SHOWING DATES********
+stop the server "ctrl-c"
 Gemfile
   gem 'stamp'
 
@@ -172,7 +239,8 @@ $ bundle
 views/todos/show.html.erb
   <em><%= note.created_at.stamp("July 4, 1776") %><em>
 
-STATUS
+
+********STATUS********
 $ rails g migration add_status_to_todos status:boolean
 
 db/migrate/#####_add_status_to_todos
@@ -205,11 +273,11 @@ views/todos/show.html.erb
 controllers/todos_controller.rb
   def completed
     @todos = Todo.find_all_by_status(false)
-    render 'index'
+    render :index
   end  
 
 config/routes.rb
-  match '/completed' => 'todos#completed', :as => 'completed'
+  match '/completed' => 'todos#completed', :as => :completed
 
 views/todos/index.html.erb
   <th><%= model_class.human_attribute_name(:status) %></th>
@@ -222,7 +290,193 @@ views/todos/index.html.erb
     <% end %>
   </td>
 
-CHANGE "LINK 2 TO COMPLETE
+CHANGE "LINK 2" TO COMPLETE
   app/layouts/application.html.erb
     <li><%= link_to "Complete", completed_path  %></li>
 
+$ rails s
+http://localhost:3000/
+
+
+********ADVANCED BUT STARTING EASY********
+
+CREATE STATIC PAGE. "about page"
+
+config/routes.rb
+  match '/about' => 'welcome#about', :as => :our_cool_about_page
+
+app/controllers/welcome_controller.rb
+  def about
+  end
+  
+app/views/welcome/about.html.erb
+  put whatever you want in here. It's you app!
+
+CHANGE "LINK 3" TO ABOUT
+  app/views/layouts/application.html.erb
+    <li><%= link_to "About", our_cool_about_page_path %></li>
+
+ADDING AN IMAGE
+  get an image from the interwebs
+  Place your image in "app/assets/images/"
+  
+  app/views/welcome/index.html.erb
+    <div><%= image_tag('the-name-of-your-image.jpg') %></div>
+    
+
+GETTY FANCY WITH USER ACCOUNTS
+stop the server "ctrl-c"  
+  
+Gemfile
+  gem 'devise' # https://github.com/plataformatec/devise
+  
+$ bundle
+
+$ rails g devise:install
+  # There will be some configuration here
+  
+app/config/environments/development.rb
+  config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+
+app/views/layouts/application.html.erb
+  <p class="notice"><%= notice %></p>
+  <p class="alert"><%= alert %></p>
+
+app/config/application.rb
+  config.assets.initialize_on_precompile = false
+
+app/config/environments/production.rb
+  config.action_mailer.default_url_options = { :host => 'http://mywebsite.com' }
+  
+$ rails g devise User
+
+$ bundle exec rake db:migrate
+
+$ rails g devise:views
+
+$ rails s
+http://localhost:3000/
+
+app/controllers/todos_controller.rb
+  before_filter :authenticate_user!
+
+http://localhost:3000/todos
+
+ADD SIGN IN AND SIGN UP LINKS
+
+inside the sidebar area, replace Link1 & Link2. Delete Link3
+app/views/layouts/application.rb
+  <li><%= link_to "Sign Up", new_user_registration_path  %></li>
+  <li><%= link_to "Sign In", new_user_session_path  %></li>
+
+SIGN UP FOR AN ACCOUNT!
+  how do you log out?
+  
+UPDATE SIDEBAR
+app/views/layouts/application.rb
+  <% if user_signed_in? %>
+    <li><%= link_to "Update Account", edit_registration_path(current_user) %></li>
+    <li><%= link_to "Sign Out", destroy_user_session_path, :method => :delete %></li>
+  <% else%>
+    <li><%= link_to "Sign Up", new_user_registration_path  %></li>
+    <li><%= link_to "Sign In", new_user_session_path  %></li>
+  <% end %>
+  
+REFRESH PAGE!
+  sign out then sign back in.
+  
+FIXING A BUG
+  
+app/helpers/application_helper.rb
+  def display_flash_message
+    [:notice, :success, :alert, :warning, :error].each do |message|
+      return content_tag(:div, flash[message], :class => message) if flash[message]
+    end unless flash.empty?
+  end
+
+app/controllers/todos_controller.rb
+    ...
+  else
+    format.html { 
+      flash[:alert] = 'Something went wrong trying to save the TODO'
+      ...
+      
+SIGN OUT & CREATE NEW ACCOUNT
+
+http://localhost:3000/todos/
+
+SCOPING TODOS
+stop the server "ctrl-c"
+
+app/models/user.rb
+  has_many :todos
+
+app/models/todo.rb
+  belongs_to :user
+  
+$ rails g migration add_user_id_to_todos user_id:integer
+
+$ bundle exec rake db:migrate
+
+app/controllers/todos_controller.rb
+  replace all `Todo.` with `current_user.todos.`
+  NOTE: be sure the . is after the Todo if you "global find and replace". This ensures that the class name, and flash messages are untouched.
+  
+GETTING FANCY WITH HELPERS
+
+app/helpers/application_helper.rb
+  def avatar(email, options = {})
+    require 'digest/md5'
+    hash = Digest::MD5.hexdigest(email)
+    image_src = url_for({:host => "www.gravatar.com/avatar/#{hash}", :d => 'mm'}.merge(options))
+    image_tag(image_src, :alt => 'Gravatar Image')
+  end
+  
+app/views/layouts/application.html.erb
+  <div class="pull-right">
+    <%= avatar(current_user.email) if user_signed_in? %>
+  </div>
+  <h3>Sidebar</h3>
+  
+
+MAKE AT LEAST 10 TODOS
+
+TIME TO PAGINATE
+stop the server "ctrl-c"
+
+Gemfile
+  gem 'kaminari' #https://github.com/amatsuda/kaminari
+
+$ bundle
+
+app/controller/todos_controller.rb
+  from: @todos = current_user.todos.all
+  to: @todos = current_user.todos.page(params[:page]).per(5)
+
+app/views/todos/index.html.erb
+  <%= paginate(@todos) %>
+  
+READY TO DEPLOY!!
+stop the server "ctrl-c"
+
+Signup at https://api.heroku.com/signup
+
+Gemfile
+  group :development do
+    gem 'sqlite3' # <-- move this into here
+    gem 'heroku'
+  end
+  group :production do
+    gem 'pg'
+    gem 'thin'
+  end
+  
+$ bundle
+$ git init .
+$ git add .
+$ git commit -m "Initial Commit"
+$ heroku create --stack cedar
+   Enter in the credentials you signed up with.
+   The url of the app will be given to you after the app has been created.
+$ git push heroku master
+$ heroku run rake db:migrate
