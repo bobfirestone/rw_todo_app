@@ -455,19 +455,27 @@ $ bundle
 app/controller/todos_controller.rb
   def index
     from: @todos = current_user.todos.find_all_by_status(true)
-    to: @todos = current_user.todos.where("status == ?", true).page(params[:page]).per(5)
+    to: @todos = current_user.todos.where(:status => true).page(params[:page]).per(5)
 
   def completed
     from: @todos = current_user.todos.find_all_by_status(true)
-    to: @todos = current_user.todos.where("status == ?", false).page(params[:page]).per(5)
+    to: @todos = current_user.todos.where(:status => false).page(params[:page]).per(5)
 
 app/views/todos/index.html.erb
   <%= paginate(@todos) %>
 
 
 FIXING THE VIEWS
-https://github.com/gabetax/twitter-bootstrap-kaminari-views
-Download zip file copy the app/views/kaminari folder into the projects app/views folder
+app/assets/application.css
+  span.page.current {
+    border-color: #DDDDDD;
+    border-style: solid;
+    border-width: 1px 1px 1px 0;
+    float: left;
+    line-height: 34px;
+    padding: 0 14px;
+    text-decoration: none;
+  }
 
 reload page and see the fixed views
 
