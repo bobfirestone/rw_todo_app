@@ -1,12 +1,14 @@
 RwTodoApp::Application.routes.draw do
 
 
+  devise_for :users
+
   resources :todos do
     resources :notes
   end
 
   match '/completed' => 'todos#completed', :as => 'completed'
-
+  match '/about' => 'welcome#about', :as => 'about'
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

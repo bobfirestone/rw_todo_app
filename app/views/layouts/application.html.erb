@@ -33,7 +33,7 @@
             <ul class="nav">
               <li><%= link_to "Open", todos_path  %></li>
               <li><%= link_to "Complete", completed_path  %></li>
-              <li><%= link_to "Link3", "/path3"  %></li>
+              <li><%= link_to "About", about_path  %></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -44,16 +44,30 @@
       <div class="content">
         <div class="row">
            <div class="span9">
+              <!-- <% if notice.present? %> -->
+                <p class="notice"><%= notice %></p>  
+              <!-- <% end %> -->
+              <!-- <% if alert.present? %> -->
+                <p class="alert"><%= alert %></p>
+              <!-- <% end %> -->
               <%= yield %>
             </div>
             <div class="span3">
               <div class="well sidebar-nav">
+                <div class="pull-right">
+                  <%= avatar(current_user.email) if user_signed_in? %>
+                </div>
                 <h3>Sidebar</h3>
                 <ul class="nav nav-list">
                   <li class="nav-header">Sidebar</li>
-                  <li><%= link_to "Link1", "/path1"  %></li>
-                  <li><%= link_to "Link2", "/path2"  %></li>
-                  <li><%= link_to "Link3", "/path3"  %></li>
+                  <% if user_signed_in? %>
+                    <li><%= link_to "Update Account", edit_registration_path(current_user) %></li>
+                    <li><%= link_to "Sign Out", destroy_user_session_path, :method => :delete %></li>
+                  <% else%>
+                    <li><%= link_to "Sign Up", new_user_registration_path  %></li>
+                    <li><%= link_to "Sign In", new_user_session_path  %></li>
+                  <% end %>
+                  
                 </ul>
               </div><!--/.well -->
             </div><!--/span-->

@@ -395,12 +395,15 @@ app/helpers/application_helper.rb
   end
 
 app/controllers/todos_controller.rb
+  def create
     ...
-  else
-    format.html { 
-      flash[:alert] = 'Something went wrong trying to save the TODO'
-      ...
-      
+    else
+      format.html { 
+        flash[:alert] = 'Something went wrong trying to save the TODO'
+        render action: "new"
+        }
+        ...
+  end    
 SIGN OUT & CREATE NEW ACCOUNT
 
 http://localhost:3000/todos/
@@ -450,12 +453,26 @@ Gemfile
 $ bundle
 
 app/controller/todos_controller.rb
-  from: @todos = current_user.todos.all
-  to: @todos = current_user.todos.page(params[:page]).per(5)
+  def index
+    from: @todos = current_user.todos.find_all_by_status(true)
+    to: @todos = current_user.todos.where("status == ?", true).page(params[:page]).per(5)
+
+  def completed
+    from: @todos = current_user.todos.find_all_by_status(true)
+    to: @todos = current_user.todos.where("status == ?", false).page(params[:page]).per(5)
 
 app/views/todos/index.html.erb
   <%= paginate(@todos) %>
-  
+
+
+FIXING THE VIEWS
+https://github.com/gabetax/twitter-bootstrap-kaminari-views
+Download zip file copy the app/views/kaminari folder into the projects app/views folder
+
+reload page and see the fixed views
+
+
+
 READY TO DEPLOY!!
 stop the server "ctrl-c"
 

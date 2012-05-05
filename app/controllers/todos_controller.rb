@@ -1,8 +1,9 @@
 class TodosController < ApplicationController
+  before_filter :authenticate_user!
   # GET /todos
   # GET /todos.json
   def index
-    @todos = Todo.find_all_by_status(true)
+    @todos = current_user.todos.where("status == ?", true).page(params[:page]).per(5)
 
     respond_to do |format|
       format.html # index.html.erb
@@ -11,7 +12,7 @@ class TodosController < ApplicationController
   end
 
   def completed
-    @todos = Todo.find_all_by_status(false)
+    @todos = current_user.todos.where("status == ?", false).page(params[:page]).per(5)
 
     render 'index'
   end
@@ -19,7 +20,7 @@ class TodosController < ApplicationController
   # GET /todos/1
   # GET /todos/1.json
   def show
-    @todo = Todo.find(params[:id])
+    @todo = current_user.todos.find(params[:id])
     @notes = @todo.notes.all
     @note = @todo.notes.build
 
@@ -32,7 +33,7 @@ class TodosController < ApplicationController
   # GET /todos/new
   # GET /todos/new.json
   def new
-    @todo = Todo.new
+    @todo = current_user.todos.new
 
     respond_to do |format|
       format.html # new.html.erb
@@ -42,20 +43,22 @@ class TodosController < ApplicationController
 
   # GET /todos/1/edit
   def edit
-    @todo = Todo.find(params[:id])
+    @todo = current_user.todos.find(params[:id])
   end
 
   # POST /todos
   # POST /todos.json
   def create
-    @todo = Todo.new(params[:todo])
+    @todo = current_user.todos.new(params[:todo])
 
     respond_to do |format|
       if @todo.save
         format.html { redirect_to @todo, notice: 'Todo was successfully created.' }
         format.json { render json: @todo, status: :created, location: @todo }
       else
-        format.html { render action: "new" }
+        format.html { 
+          flash[:alert] = 'Something went wrong trying to save the TODO' 
+          render action: "new" }
         format.json { render json: @todo.errors, status: :unprocessable_entity }
       end
     end
@@ -64,7 +67,7 @@ class TodosController < ApplicationController
   # PUT /todos/1
   # PUT /todos/1.json
   def update
-    @todo = Todo.find(params[:id])
+    @todo = current_user.todos.find(params[:id])
 
     respond_to do |format|
       if @todo.update_attributes(params[:todo])
@@ -80,7 +83,7 @@ class TodosController < ApplicationController
   # DELETE /todos/1
   # DELETE /todos/1.json
   def destroy
-    @todo = Todo.find(params[:id])
+    @todo = current_user.todos.find(params[:id])
     @todo.destroy
 
     respond_to do |format|
